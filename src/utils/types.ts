@@ -1,15 +1,15 @@
-export interface User {
+export interface IUser {
     id: number;
     username: string;
     password: string;
-    tasks: Task[];
+    tasks: ITask[];
 }
 
-export interface Task {
+export interface ITask {
     id: number;
     title: string;
     completed: boolean;
-    user: User;
+    user: IUser;
 }
 
 export interface ErrorResponse extends Partial<Error> {
