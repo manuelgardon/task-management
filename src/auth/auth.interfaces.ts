@@ -15,3 +15,7 @@ export interface JwtValidationResponse {
     userId: number;
     username: string;
 }
+
+export interface Request {
+    user?: JwtPayload;
+}

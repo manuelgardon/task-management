@@ -14,7 +14,9 @@ export class UsersService {
         return this.userRepository.findOne({ where: { username } });
     }
 
-    async create(username: string, password: string): Promise<User> {
+    async create(username: string, password: string): Promise<User | null> {
+        const existingUser = await this.findOne(username);
+        if (existingUser) return null;
         const user = this.userRepository.create({ username, password });
         return this.userRepository.save(user);
       }
