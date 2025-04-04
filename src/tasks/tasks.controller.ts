@@ -13,8 +13,8 @@ export class TasksController {
     @Get()
     findAll(
         @Req() request: Request,
-        @Query('page') page?: string,
-        @Query('limit') limit?: string,
+        @Query('page') page: string = '1',
+        @Query('limit') limit: string = '10',
     ): Promise<{ tasks: Task[]; total: number }> {
         const user = request?.user;
         if (!user || !user.userId) throw new ForbiddenException('User not found');
