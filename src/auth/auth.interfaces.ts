@@ -9,6 +9,7 @@ export interface UserValidationResponse {
 export interface JwtPayload {
     username: string;
     sub: number;
+    userId?: number;
 }
 
 export interface JwtValidationResponse {

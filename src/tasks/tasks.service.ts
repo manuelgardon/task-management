@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Task } from './task.entity';
 import { Repository } from 'typeorm';
 import { User } from 'src/users/user.entity';
+import { POPULATE_URL } from 'src/utils/constants';
 
 @Injectable()
 export class TasksService {
@@ -31,12 +32,12 @@ export class TasksService {
         await this.tasksRepository.delete({ id, userId });
     }
 
-    async populateTasks(): Promise<Partial<Task[]> | null> {
+    async populateTasks(): Promise<Task[] | null> {
         const response = await fetch(POPULATE_URL);
         const tasks: Task[] = await response.json();
         
-        const existingUserIds = (await this.usersRepository.find()).map(user => user.id);
-
+        const existingUserIds = (await this.usersRepository.find()).map(user => Number(user.id));
+        
         const tasksToSave = tasks
           .filter((task) => existingUserIds.includes(task.userId))
           .map((task) => ({
@@ -44,7 +45,8 @@ export class TasksService {
             completed: task.completed,
             userId: task.userId,
           }));
-    
+
+        if (!tasksToSave) return null;
         return await this.tasksRepository.save(tasksToSave);
     }
 }

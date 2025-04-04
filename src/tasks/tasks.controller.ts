@@ -1,8 +1,9 @@
-import { Body, Controller, ForbiddenException, Get, Param, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, ForbiddenException, Get, Param, Post, Req, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { TasksService } from './tasks.service';
 import { Task } from './task.entity';
 import { Request } from 'src/auth/auth.interfaces';
+import { TaskDto } from './types';
 
 @Controller('tasks')
 @UseGuards(AuthGuard('jwt'))
@@ -11,23 +12,23 @@ export class TasksController {
 
     @Get()
     findAll(@Req() request: Request): Promise<Task[]> {
-        const user = request.user;
-        if (!user) throw new ForbiddenException('User not found');
-        return this.tasksService.findAllByUser(user.sub);
+        const user = request?.user;
+        if (!user || !user.userId) throw new ForbiddenException('User not found');
+        return this.tasksService.findAllByUser(user.userId);
     }
 
     @Post()
-    create(@Body() task: Partial<Task>, @Req() request: Request): Promise<Task> {
-        const user = request.user;
-        if (!user) throw new ForbiddenException('User not found');
-        return this.tasksService.create(task, user.sub);
+    create(@Body() task: TaskDto, @Req() request: Request): Promise<Task> {
+        const user = request?.user;
+        if (!user || !user.userId) throw new ForbiddenException('User not found');
+        return this.tasksService.create(task, user.userId);
     }
     
     @Get(':id')
     async findOneById(@Param('id') id: string, @Req() request: Request): Promise<Task> {
-        const user = request.user;
-        if (!user) throw new ForbiddenException('User not found');
-        const task = await this.tasksService.findOneById(Number(id), user.sub);
+        const user = request?.user;
+        if (!user || !user.userId) throw new ForbiddenException('User not found');
+        const task = await this.tasksService.findOneById(Number(id), user.userId);
         if (!task) throw new ForbiddenException('Task not found');
         return task;
     }
@@ -36,5 +37,14 @@ export class TasksController {
     async populateTasks(): Promise<void> {
         const populateTasks = await this.tasksService.populateTasks();
         if (!populateTasks) throw new ForbiddenException('Error populating tasks. User not found');
+    }
+
+    @Delete(':id')
+    async remove(@Param('id') id: string, @Req() request: Request): Promise<void> {
+        const user = request?.user;
+        if (!user || !user.userId) throw new ForbiddenException('User not found');
+        const task = await this.tasksService.findOneById(Number(id), user.userId);
+        if (!task) throw new ForbiddenException('Task not found');
+        this.tasksService.remove(Number(id), user.userId);
     }
 }

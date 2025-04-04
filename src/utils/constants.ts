@@ -1,1 +1,1 @@
-const POPULATE_URL = 'https://jsonplaceholder.typicode.com/todos';
+export const POPULATE_URL = 'https://jsonplaceholder.typicode.com/todos';
