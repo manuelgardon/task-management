@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, ForbiddenException, Get, Param, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, ForbiddenException, Get, Param, Post, Query, Req, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { TasksService } from './tasks.service';
 import { Task } from './task.entity';
@@ -11,10 +11,18 @@ export class TasksController {
     constructor(private readonly tasksService: TasksService) {}
 
     @Get()
-    findAll(@Req() request: Request): Promise<Task[]> {
+    findAll(
+        @Req() request: Request,
+        @Query('page') page?: string,
+        @Query('limit') limit?: string,
+    ): Promise<{ tasks: Task[]; total: number }> {
         const user = request?.user;
         if (!user || !user.userId) throw new ForbiddenException('User not found');
-        return this.tasksService.findAllByUser(user.userId);
+        if (!Number(page) || !Number(limit)) throw new ForbiddenException('Page and limit must be numbers'); 
+        if (Number(page) < 1 || Number(limit) < 1) throw new ForbiddenException('Page and limit must be greater than 0');
+        const pageNum = Number(page) || 1;
+        const limitNum = Number(limit) || 10;
+        return this.tasksService.findAllByUser(user.userId, pageNum, limitNum);
     }
 
     @Post()

@@ -14,8 +14,13 @@ export class TasksService {
         private usersRepository: Repository<User>,
     ) {}
 
-    async findAllByUser(userId: number): Promise<Task[]> {
-        return this.tasksRepository.find({ where: { userId } });
+    async findAllByUser(userId: number, page: number, limit: number): Promise<{ tasks: Task[], total: number }> {
+        const [tasks, total] = await this.tasksRepository.findAndCount({
+            where: { userId },
+            skip: (page - 1) * limit,
+            take: limit,
+        });
+        return { tasks, total };
     }
     
     async create(task: Partial<Task>, userId: number): Promise<Task> {
